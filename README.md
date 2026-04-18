@@ -22,6 +22,7 @@ SatyaNetra is an AI-powered deepfake detection platform inspired by the Veriface
 - Python 3.10 or 3.11 (recommended for TensorFlow 2.15)
 - Node.js >= 18
 - npm >= 9
+- Git LFS
 - ffmpeg installed
 - git installed
 - At least 8GB RAM (16GB recommended)
@@ -34,6 +35,10 @@ SatyaNetra is an AI-powered deepfake detection platform inspired by the Veriface
 ```bash
 git clone <your-repo-url>
 cd satyanetra
+
+# Required once per machine for model artifacts
+git lfs install
+git lfs pull
 ```
 
 ### 2. Backend setup
