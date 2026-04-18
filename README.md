@@ -41,6 +41,12 @@ git lfs install
 git lfs pull
 ```
 
+Notes:
+
+- `backend/temp_uploads/` is runtime-only and is kept empty in git except for a `.gitkeep` placeholder.
+- `backend/trained_models/lstm_deepfake_detector.keras` is included for inference.
+- If detection reports model not loaded after clone, run `git lfs pull` again.
+
 ### 2. Backend setup
 
 ```bash

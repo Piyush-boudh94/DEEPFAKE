@@ -32,6 +32,30 @@ _MODELS_READY = False
 _DECISION_THRESHOLD = 0.5
 
 
+def _is_git_lfs_pointer(file_path: str) -> bool:
+	try:
+		with open(file_path, "rb") as model_file:
+			header = model_file.read(128)
+		return header.startswith(b"version https://git-lfs.github.com/spec/v1")
+	except OSError:
+		logger.exception("Failed to inspect model file: %s", file_path)
+		return False
+
+
+def _load_decision_threshold(model_folder: str) -> float:
+	threshold_path = os.path.join(model_folder, "decision_threshold.json")
+	if not os.path.exists(threshold_path):
+		return 0.5
+
+	try:
+		with open(threshold_path, "r", encoding="utf-8") as threshold_file:
+			data = json.load(threshold_file)
+		return float(data.get("threshold", 0.5))
+	except Exception:
+		logger.exception("Failed to load decision threshold; falling back to 0.5")
+		return 0.5
+
+
 def initialize_detection_models(model_folder: str, sequence_length: int, feature_dim: int) -> bool:
 	global _RESNET, _LSTM, _AUDIO_ANALYZER, _MODELS_READY, _DECISION_THRESHOLD
 
@@ -51,29 +75,33 @@ def initialize_detection_models(model_folder: str, sequence_length: int, feature
 
 	_LSTM = LSTMDeepfakeDetector(sequence_length=sequence_length, feature_dim=feature_dim)
 	if os.path.exists(lstm_path_keras):
-		_LSTM.load(lstm_path_keras)
-		threshold_path = os.path.join(model_folder, "decision_threshold.json")
-		if os.path.exists(threshold_path):
-			try:
-				with open(threshold_path, "r", encoding="utf-8") as f:
-					data = json.load(f)
-				_DECISION_THRESHOLD = float(data.get("threshold", 0.5))
-			except Exception:
-				logger.exception("Failed to load decision threshold; falling back to 0.5")
-				_DECISION_THRESHOLD = 0.5
+		if _is_git_lfs_pointer(lstm_path_keras):
+			logger.error(
+				"Model file %s is a Git LFS pointer, not the actual model. Run `git lfs pull`.",
+				lstm_path_keras,
+			)
+			return False
+		try:
+			_LSTM.load(lstm_path_keras)
+		except Exception:
+			logger.exception("Failed to load LSTM model from %s", lstm_path_keras)
+			return False
+		_DECISION_THRESHOLD = _load_decision_threshold(model_folder)
 		_MODELS_READY = True
 		return True
 	if os.path.exists(lstm_path_h5):
-		_LSTM.load(lstm_path_h5)
-		threshold_path = os.path.join(model_folder, "decision_threshold.json")
-		if os.path.exists(threshold_path):
-			try:
-				with open(threshold_path, "r", encoding="utf-8") as f:
-					data = json.load(f)
-				_DECISION_THRESHOLD = float(data.get("threshold", 0.5))
-			except Exception:
-				logger.exception("Failed to load decision threshold; falling back to 0.5")
-				_DECISION_THRESHOLD = 0.5
+		if _is_git_lfs_pointer(lstm_path_h5):
+			logger.error(
+				"Model file %s is a Git LFS pointer, not the actual model. Run `git lfs pull`.",
+				lstm_path_h5,
+			)
+			return False
+		try:
+			_LSTM.load(lstm_path_h5)
+		except Exception:
+			logger.exception("Failed to load LSTM model from %s", lstm_path_h5)
+			return False
+		_DECISION_THRESHOLD = _load_decision_threshold(model_folder)
 		_MODELS_READY = True
 		return True
 

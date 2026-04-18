@@ -25,7 +25,9 @@ frontend/.vite/
 # Data and model artifacts
 datasets/
 _external/
-backend/temp_uploads/
+# Runtime upload artifacts are local-only; keep folder scaffold for fresh clones
+backend/temp_uploads/*
+!backend/temp_uploads/.gitkeep
 backend/trained_models/*.h5
 backend/trained_models/*.keras
 !backend/trained_models/lstm_deepfake_detector.keras
