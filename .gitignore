@@ -28,6 +28,7 @@ _external/
 backend/temp_uploads/
 backend/trained_models/*.h5
 backend/trained_models/*.keras
+!backend/trained_models/lstm_deepfake_detector.keras
 
 # Misc
 .DS_Store
