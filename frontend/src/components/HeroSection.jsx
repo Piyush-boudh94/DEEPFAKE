@@ -1,7 +1,9 @@
 import { animate, motion as Motion, useMotionValue, useMotionValueEvent } from 'framer-motion'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+
+import { useAuth } from '../context/AuthContext'
 
 
 const HERO_TEXT = 'Unmask the Truth'
@@ -34,6 +36,8 @@ function AnimatedStat({ label, target, suffix }) {
 
 function HeroSection() {
 	const [displayText, setDisplayText] = useState('')
+	const navigate = useNavigate()
+	const { user, openAuthModal } = useAuth()
 
 	useEffect(() => {
 		let idx = 0
@@ -53,6 +57,15 @@ function HeroSection() {
 		],
 		[],
 	)
+
+	const handleAnalyzeClick = (e) => {
+		e.preventDefault()
+		if (user) {
+			navigate('/detect')
+		} else {
+			openAuthModal()
+		}
+	}
 
 	return (
 		<section className="noise relative min-h-screen overflow-hidden px-6 pb-14 pt-36">
@@ -101,13 +114,14 @@ function HeroSection() {
 					transition={{ delay: 0.35 }}
 					className="mt-9 flex flex-wrap items-center justify-center gap-4"
 				>
-					<Link
-						to="/detect"
-						className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-500 px-6 py-3 font-semibold text-white transition hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]"
+					<button
+						type="button"
+						onClick={handleAnalyzeClick}
+						className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-500 px-6 py-3 font-semibold text-white transition hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] hover:scale-[1.02]"
 					>
 						Analyze Video
 						<ArrowRight size={18} />
-					</Link>
+					</button>
 					<Link
 						to="/#how-it-works"
 						className="rounded-full border border-slate-500/70 px-6 py-3 font-semibold text-slate-200 transition hover:border-sky-400 hover:text-white"
@@ -131,4 +145,3 @@ function HeroSection() {
 }
 
 export default HeroSection
-

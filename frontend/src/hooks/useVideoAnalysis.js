@@ -20,6 +20,8 @@ const ANALYSIS_STEPS = [
 	'Generating Report',
 ]
 
+const STEP_PROGRESS_MILESTONES = [12, 28, 44, 60, 76, 95]
+
 
 export function useVideoAnalysis() {
 	const [state, setState] = useState(INITIAL)
@@ -27,6 +29,7 @@ export function useVideoAnalysis() {
 	const [selectedFile, setSelectedFile] = useState(null)
 	const timerRef = useRef(null)
 	const abortRef = useRef(null)
+	const simulationStartedRef = useRef(false)
 
 	const stopTimer = useCallback(() => {
 		if (timerRef.current) {
@@ -42,23 +45,26 @@ export function useVideoAnalysis() {
 				if (prev.analysisProgress >= 95) {
 					return prev
 				}
-				const nextProgress = Math.min(prev.analysisProgress + Math.random() * 7, 95)
-				const stepIndex = Math.min(
-					ANALYSIS_STEPS.length - 1,
-					Math.floor((nextProgress / 100) * ANALYSIS_STEPS.length),
-				)
+				const nextProgress = Math.min(prev.analysisProgress + 3.2, 95)
+				let stepIndex = 0
+				for (let index = 0; index < STEP_PROGRESS_MILESTONES.length - 1; index += 1) {
+					if (nextProgress >= STEP_PROGRESS_MILESTONES[index]) {
+						stepIndex = index + 1
+					}
+				}
 				return {
 					...prev,
 					analysisProgress: nextProgress,
 					activeStep: stepIndex,
 				}
 			})
-		}, 700)
+		}, 500)
 	}, [stopTimer])
 
 	const upload = useCallback(async (file) => {
 		setSelectedFile(file)
 		setResult(null)
+		simulationStartedRef.current = false
 		setState({
 			phase: 'uploading',
 			uploadProgress: 0,
@@ -77,7 +83,8 @@ export function useVideoAnalysis() {
 					const total = event.total || 1
 					const progress = Math.round((event.loaded * 100) / total)
 					setState((prev) => ({ ...prev, uploadProgress: progress }))
-					if (progress > 20) {
+					if (progress > 10 && !simulationStartedRef.current) {
+						simulationStartedRef.current = true
 						setState((prev) => ({ ...prev, phase: 'analyzing' }))
 						runProgressSimulation()
 					}
@@ -86,6 +93,8 @@ export function useVideoAnalysis() {
 			)
 
 			stopTimer()
+			simulationStartedRef.current = false
+			abortRef.current = null
 			setResult(response.data)
 			setState({
 				phase: 'complete',
@@ -98,6 +107,8 @@ export function useVideoAnalysis() {
 			return response.data
 		} catch (error) {
 			stopTimer()
+			simulationStartedRef.current = false
+			abortRef.current = null
 			const message = error?.response?.data?.message || error?.message || 'Analysis failed.'
 			setState((prev) => ({ ...prev, phase: 'error', error: message }))
 			throw error
@@ -110,12 +121,14 @@ export function useVideoAnalysis() {
 			abortRef.current = null
 		}
 		stopTimer()
+		simulationStartedRef.current = false
 		setState((prev) => ({ ...prev, phase: 'idle', uploadProgress: 0, analysisProgress: 0, activeStep: 0 }))
 	}, [stopTimer])
 
 	const reset = useCallback(() => {
 		stopTimer()
 		abortRef.current = null
+		simulationStartedRef.current = false
 		setResult(null)
 		setSelectedFile(null)
 		setState(INITIAL)

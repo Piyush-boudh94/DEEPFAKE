@@ -34,6 +34,10 @@ backend/trained_models/*.keras
 !backend/trained_models/lstm_deepfake_detector.keras
 !backend/trained_models/lstm_deepfake_detector_pre_tune.keras
 
+# Dataset folders (large video/training data — never push)
+deepfake_project/
+dataset/
+
 # Misc
 .DS_Store
 *.log

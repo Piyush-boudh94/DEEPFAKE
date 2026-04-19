@@ -17,9 +17,6 @@ function Footer() {
 					<p className="mt-3 text-sm text-slate-400">
 						AI-powered deepfake detection platform for trusted media verification.
 					</p>
-					<span className="mt-4 inline-block rounded-full border border-amber-400/40 bg-amber-300/10 px-3 py-1 text-xs text-amber-200">
-						Made for Smart India Hackathon 2024
-					</span>
 				</div>
 
 				<div>
